@@ -1,0 +1,27 @@
+.awesome-zoom-image-wrapper {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, .5);
+  transition: all .2s;
+}
+.awesome-zoom-image-wrapper.enter-from {
+  transform: scale(0.4);
+  opacity: 0;
+}
+.awesome-zoom-image-wrapper.leave-to {
+  transform: scale(0.4);
+  opacity: 0;
+}
+.awesome-zoom-image-wrapper .awesome-zoom-image {
+  cursor: move;
+}
+.awesome-zoom-image-wrapper .awesome-zoom-image.transition-active {
+  transition: transform .1s linear;
+}
