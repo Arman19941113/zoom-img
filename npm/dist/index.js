@@ -31,19 +31,15 @@ export default function handleImageZoom(rootEvent) {
     const wPercent = originImgWidth / window.innerWidth;
     const hPercent = originImgHeight / window.innerHeight;
     if (wPercent > hPercent) {
-        imgElement.setAttribute('width', '70%');
+        imgElement.setAttribute('width', '80%');
     }
     else {
-        imgElement.setAttribute('height', '70%');
+        imgElement.setAttribute('height', '80%');
     }
     imgElement.classList.add('awesome-zoom-image');
     wrapperElement.appendChild(imgElement);
     document.body.appendChild(wrapperElement);
     function onShow() {
-        listenTransform();
-        listenClose();
-    }
-    function listenTransform() {
         imgElement.addEventListener('click', handleClick);
         imgElement.addEventListener('wheel', handleWheel);
         imgElement.addEventListener('mousedown', handleMousedown);
@@ -142,8 +138,6 @@ export default function handleImageZoom(rootEvent) {
             document.removeEventListener('mousemove', handleMousemove);
             document.removeEventListener('mouseup', handleMouseup);
         }
-    }
-    function listenClose() {
         wrapperElement.addEventListener('click', handleClickWrapper);
         document.addEventListener('keydown', handleKeydown);
         function handleClickWrapper(e) {
@@ -151,8 +145,10 @@ export default function handleImageZoom(rootEvent) {
             beforeDestroy();
         }
         function handleKeydown(e) {
-            if (['Escape', 'Enter', 'NumpadEnter'].includes(e.code)) {
+            if (e.code === 'Escape')
                 beforeDestroy();
+            else if (['Enter', 'NumpadEnter'].includes(e.code)) {
+                resetStyle();
             }
         }
         function beforeDestroy() {

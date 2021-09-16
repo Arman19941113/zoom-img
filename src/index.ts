@@ -35,9 +35,9 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
   const wPercent = originImgWidth / window.innerWidth
   const hPercent = originImgHeight / window.innerHeight
   if (wPercent > hPercent) {
-    imgElement.setAttribute('width', '70%')
+    imgElement.setAttribute('width', '80%')
   } else {
-    imgElement.setAttribute('height', '70%')
+    imgElement.setAttribute('height', '80%')
   }
   imgElement.classList.add('awesome-zoom-image')
 
@@ -47,12 +47,6 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
 
   // 图片出现后监听事件
   function onShow(): void {
-    listenTransform()
-    listenClose()
-  }
-
-  // 交互逻辑
-  function listenTransform(): void {
     imgElement.addEventListener('click', handleClick)
     imgElement.addEventListener('wheel', handleWheel)
     imgElement.addEventListener('mousedown', handleMousedown)
@@ -148,7 +142,6 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
       lastMoveX = e.pageX
       lastMoveY = e.pageY
       imgElement.classList.add('transition-active')
-      // imgElement.classList.remove('transition-active')
       document.addEventListener('mousemove', handleMousemove, { passive: false })
       document.addEventListener('mouseup', handleMouseup)
     }
@@ -173,10 +166,8 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
       document.removeEventListener('mousemove', handleMousemove)
       document.removeEventListener('mouseup', handleMouseup)
     }
-  }
 
-  // 监听关闭事件
-  function listenClose(): void {
+    // 关闭
     wrapperElement.addEventListener('click', handleClickWrapper)
     document.addEventListener('keydown', handleKeydown)
 
@@ -186,8 +177,9 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
     }
 
     function handleKeydown(e: KeyboardEvent): void {
-      if (['Escape', 'Enter', 'NumpadEnter'].includes(e.code)) {
-        beforeDestroy()
+      if (e.code === 'Escape') beforeDestroy()
+      else if (['Enter', 'NumpadEnter'].includes(e.code)) {
+        resetStyle()
       }
     }
 

@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "rootDir": "src",
-    "outDir": "dist",
+    "outDir": "npm/dist",
     "declaration": true,
     "removeComments": true
   },
