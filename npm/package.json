@@ -1,6 +1,6 @@
 {
   "name": "handle-image-zoom",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "keywords": ["js", "handleImageZoom"],
   "description": "A easy way to zoom image when click the img element.",
   "module": "dist/index.js",
