@@ -1,1 +1,1 @@
-export default function handleImageZoom(rootEvent: MouseEvent): void;
+export default function handleImageZoom(param: string | MouseEvent): void;

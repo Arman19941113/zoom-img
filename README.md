@@ -1,15 +1,21 @@
 # handle-image-zoom
 
-This library provide a listener to add to an `<img>` element.
+As you see, it's a function to zoom `<img>` element. And there are two ways to use this function:
 
-When you click the `<img> `, a wrapper contains the image will be appended to the `<body>`.
+1. `image.addEventListener('click', handleImageZoom)`
+2. `handleImageZoom(imgSrc)`
 
-And in the wrapper, you can:
+## Basic Function
 
-1. click image to move it;
-2. wheel mouse to zoom it;
+1. press the image to move it;
+2. wheel mouse to zoom it(or zoom in Magic Trackpad);
 3. press `enter` or double click image to reset the image style;
-4. press `esc` or click wrapper to remove the wrapper.
+4. press `esc` or click mask to quit.
+
+## Advantages
+
+1. Scale picture based on the mouse position.
+2. Use css transform to move and scale picture. So it has better performance in theory.
 
 ## Hello World
 
@@ -23,7 +29,6 @@ And in the wrapper, you can:
     image.addEventListener('click', handleImageZoom)
   </script>
 </body>
-
 ```
 
 ## Install
@@ -34,6 +39,9 @@ npm install handle-image-zoom
 
 # with yarn
 yarn add handle-image-zoom
+
+# with pnpm
+pnpm add handle-image-zoom
 ```
 
 ## Quick Start
@@ -44,4 +52,10 @@ import handleImageZoom from 'handle-image-zoom'
 
 const image = document.getElementById('image')
 image.addEventListener('click', handleImageZoom)
+
+const imgSrc = 'https://xxx'
+const button = document.getElementById('button')
+button.addEventListener('click', () => {
+  handleImageZoom(imgSrc)
+})
 ```

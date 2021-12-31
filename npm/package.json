@@ -1,8 +1,8 @@
 {
   "name": "handle-image-zoom",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "keywords": ["js", "handleImageZoom"],
-  "description": "A easy way to zoom image when click the img element.",
+  "description": "Zoom image in web",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "unpkg": "dist/index.js",
@@ -15,7 +15,7 @@
   },
   "author": "Arman19941113",
   "license": "MIT",
-  "dependencies": {
+  "peerDependencies": {
     "@vue/runtime-core": "^3.0.0"
   }
 }

@@ -1,4 +1,4 @@
-import { watch, reactive } from '@vue/runtime-core'
+import { watch, reactive, ref } from '@vue/runtime-core'
 
 function clamp(value: number, min: number, max: number): number {
   if (value < min) return min
@@ -6,73 +6,89 @@ function clamp(value: number, min: number, max: number): number {
   return value
 }
 
-let timestamp = 0
+let isShowing = false
 
-export default function handleImageZoom(rootEvent: MouseEvent): void {
-  const originImg = rootEvent.target as HTMLImageElement
-  const imageSrc = originImg.getAttribute('src')
-  if (!imageSrc) return console.error('unexpected error')
+export default function handleImageZoom(param: string | MouseEvent): void {
+  if (isShowing) return
+  isShowing = true
 
-  // 避免快速点击出现多个图片
-  const now = Date.now()
-  if ((now - timestamp) > 200) timestamp = now
-  else return
+  let imageSrc
+  if (typeof param === 'string') {
+    imageSrc = param
+  } else {
+    imageSrc = (param.target as HTMLImageElement).getAttribute('src')
+  }
+  if (!imageSrc) {
+    isShowing = false
+    return console.error('Unexpected error')
+  }
 
   // 生成容器元素
   const wrapperElement = document.createElement('div')
-  wrapperElement.classList.add('awesome-zoom-image-wrapper')
-  wrapperElement.classList.add('enter-from')
-  setTimeout(() => {
-    wrapperElement.classList.remove('enter-from')
-    wrapperElement.addEventListener('transitionend', onShow, { once: true })
-  })
+  wrapperElement.classList.add('handle-image-zoom-wrapper')
 
   // 生成图片元素
   const imgElement = document.createElement('img')
+  imgElement.classList.add('handle-image-zoom-target')
   imgElement.setAttribute('src', imageSrc)
   imgElement.setAttribute('draggable', 'false')
-  const { width: originImgWidth, height: originImgHeight } = originImg.getBoundingClientRect()
-  const wPercent = originImgWidth / window.innerWidth
-  const hPercent = originImgHeight / window.innerHeight
-  if (wPercent > hPercent) {
-    imgElement.setAttribute('width', '80%')
-  } else {
-    imgElement.setAttribute('height', '80%')
-  }
-  imgElement.classList.add('awesome-zoom-image')
+  imgElement.addEventListener('load', onLoaded)
+  wrapperElement.appendChild(imgElement)
 
   // 挂载元素
-  wrapperElement.appendChild(imgElement)
   document.body.appendChild(wrapperElement)
+  setTimeout(() => {
+    wrapperElement.classList.add('handle-image-zoom-mask-enter')
+  })
 
-  // 图片出现后监听事件
-  function onShow(): void {
-    imgElement.addEventListener('click', handleClick)
-    imgElement.addEventListener('wheel', handleWheel)
-    imgElement.addEventListener('mousedown', handleMousedown)
-
-    const { width: imgWidth, height: imgHeight } = imgElement.getBoundingClientRect()
-
-    // 图片缩放、移动样式
-    const transformState = reactive({
-      matrix: { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 },
-      origin: `${imgWidth / 2}px ${imgHeight / 2}px`,
+  // 如果 100ms 内图片未加载完成 生成加载元素
+  let isLoaded = ref(false)
+  setTimeout(() => {
+    if (isLoaded.value) return
+    // 尚未加载完成
+    const loadingElement = document.createElement('div')
+    loadingElement.classList.add('handle-image-zoom-loading-wrapper')
+    loadingElement.innerHTML = `<svg class="handle-image-zoom-loading" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="29" fill="none" stroke="#FFF6" stroke-width="6" stroke-linecap="round"></circle>
+    </svg>`
+    wrapperElement.appendChild(loadingElement)
+    const watcherStop = watch(isLoaded, () => {
+      wrapperElement.removeChild(loadingElement)
+      watcherStop()
     })
+  }, 100)
+
+  // 图片加载完毕
+  function onLoaded(): void {
+    isLoaded.value = true
+
+    /**
+     * 图片缩放、移动样式
+     */
+    const { width: imgWidth, height: imgHeight } = imgElement.getBoundingClientRect()
+    const transformState = reactive({
+      origin: `${imgWidth / 2}px ${imgHeight / 2}px`,
+      matrix: { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 },
+    })
+    const resetStyle = (): void => {
+      transformState.origin = `${imgWidth / 2}px ${imgHeight / 2}px`
+      transformState.matrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 }
+    }
     watch(transformState, () => {
       imgElement.style.transform = `matrix(${Object.values(transformState.matrix).join(',')})`
       imgElement.style.transformOrigin = transformState.origin
     }, { immediate: false })
 
-    function resetStyle(): void {
-      scale = 1
-      accumulateDeltaY = 0
-      wheelingDeltaY = 0
-      imgElement.classList.remove('transition-active')
-      transformState.matrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 }
-      transformState.origin = `${imgWidth / 2}px ${imgHeight / 2}px`
-    }
+    /**
+     * 图片交互处理
+     */
+    imgElement.addEventListener('click', handleClick)
+    imgElement.addEventListener('wheel', handleWheel, { passive: false })
+    imgElement.addEventListener('mousedown', handleMousedown)
 
-    // 双击图片
+    /**
+     * 双击还原
+     */
     let isDoubleClick = false
 
     function handleClick(e: MouseEvent): void {
@@ -88,86 +104,133 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
       }
     }
 
-    // 缩放
-    const wheelBaseRate = Math.ceil(window.innerHeight / 6) // 多少像素放大一倍，值越小，缩放越快
-    const maxScale = 5, minScale = 1
-    const maxDeltaY = wheelBaseRate * maxScale, minDeltaY = 0
-    let isWheel = false, wheelTimer = 0, scale = 1, accumulateDeltaY = 0, wheelingDeltaY = 0
+    /**
+     * 缩放
+     */
+    let isWheel = false, wheelCd = false, lastWheelEvent: WheelEvent | null = null, wheelTimer = 0
 
-    function handleWheel(e: WheelEvent): void {
+    async function handleWheel(e: WheelEvent): Promise<void> {
       e.preventDefault()
       e.stopPropagation()
       if (isMove) return
 
-      updateStyleByWheel(e)
-      // 经过试验，滚轮100ms未滚动就会停止当前这个滚动行为的计算，deltaY 置零
-      wheelTimer && clearTimeout(wheelTimer)
-      wheelTimer = window.setTimeout(() => {
-        // onWheelEnd
-        isWheel = false
-      }, 100)
-    }
+      // 节流
+      if (wheelCd) {
+        lastWheelEvent = e
+        return
+      }
+      wheelCd = true
+      setTimeout(() => {
+        wheelCd = false
+        if (lastWheelEvent) {
+          const t = lastWheelEvent
+          lastWheelEvent = null
+          handleWheel(t)
+        }
+      }, 20)
 
-    function updateStyleByWheel(e: WheelEvent): void {
-      // 计算放大倍数更新 transform.scale
-      if (!isWheel) accumulateDeltaY = wheelingDeltaY
-      wheelingDeltaY = clamp(-e.deltaY + accumulateDeltaY, minDeltaY, maxDeltaY)
-      scale = clamp(Number(((wheelingDeltaY / wheelBaseRate) + 1).toFixed(1)), minScale, maxScale)
-      Object.assign(transformState.matrix, { a: scale, d: scale })
+      const currentScale = transformState.matrix.a
 
-      if (!isWheel) { // 新一轮滚动
+      if (!isWheel) {
+        // 新一轮滚动，记录滚动过程
         isWheel = true
-        imgElement.classList.remove('transition-active')
-        // 更新 transform.translate
+        // 变形中心可能变化，初始化 transformState 信息
         const { offsetX: newX, offsetY: newY } = e
         const [oldX, oldY] = transformState.origin.split(' ').map(item => Number(item.slice(0, -2)))
-        transformState.matrix.tx += (newX - oldX) * (scale - 1)
-        transformState.matrix.ty += (newY - oldY) * (scale - 1)
-        // 更新 transform-origin
-        transformState.origin = `${newX}px ${newY}px`
-      } else {
-        // onContinueWheel
-        imgElement.classList.add('transition-active')
+        if (newX !== oldX || newY !== oldY) {
+          // 更新 transform-origin
+          transformState.origin = `${newX}px ${newY}px`
+          // 更新 transform.translate
+          transformState.matrix.tx += parseInt(((newX - oldX) * (currentScale - 1)).toFixed(0))
+          transformState.matrix.ty += parseInt(((newY - oldY) * (currentScale - 1)).toFixed(0))
+          // 先重置 transform 信息，再加动画渲染缩放结果
+          await new Promise(resolve => {
+            setTimeout(() => {
+              resolve(null)
+              imgElement.classList.add('handle-image-zoom-scale-active')
+            })
+          })
+        } else {
+          imgElement.classList.add('handle-image-zoom-scale-active')
+        }
       }
+
+      // 处理放大倍数
+      let ratio
+      if (currentScale >= 5) {
+        ratio = 0.4
+      } else if (currentScale >= 4) {
+        ratio = 0.35
+      } else if (currentScale >= 3) {
+        ratio = 0.3
+      } else if (currentScale >= 2) {
+        ratio = 0.25
+      } else {
+        ratio = 0.2
+      }
+      const minScale = 1, maxScale = 6
+      const newScale = clamp(currentScale + (e.deltaY > 0 ? -1 : 1) * ratio, minScale, maxScale)
+      const fixedNewScale = Number(newScale.toFixed(2))
+      Object.assign(transformState.matrix, { a: fixedNewScale, d: fixedNewScale })
+
+      // 200ms 内没有收到 wheel 事件，缩放过程结束
+      wheelTimer && clearTimeout(wheelTimer)
+      wheelTimer = window.setTimeout(() => {
+        isWheel = false
+        imgElement.classList.remove('handle-image-zoom-scale-active')
+      }, 200)
     }
 
-    // 拖动
-    let isMove = false
-    let moveCd = false
+    /**
+     * 拖动
+     */
+    let isMove = false, moveCd = false, lastMoveEvent: MouseEvent | null = null
     let lastMoveX: number, lastMoveY: number
 
     function handleMousedown(e: MouseEvent): void {
       if (isWheel) return
+      if (e.button !== 0) return
+
       isMove = true
       lastMoveX = e.pageX
       lastMoveY = e.pageY
-      imgElement.classList.add('transition-active')
-      document.addEventListener('mousemove', handleMousemove, { passive: false })
+      imgElement.classList.add('handle-image-zoom-move-active')
+      document.addEventListener('mousemove', handleMousemove, { passive: true })
       document.addEventListener('mouseup', handleMouseup)
     }
 
     function handleMousemove(e: MouseEvent): void {
-      if (moveCd) return
+      if (moveCd) {
+        lastMoveEvent = e
+        return
+      }
       moveCd = true
+      setTimeout(() => {
+        moveCd = false
+        if (isMove && lastMoveEvent) {
+          const t = lastMoveEvent
+          lastMoveEvent = null
+          handleMousemove(t)
+        }
+      }, 20)
 
       // 节流执行的任务
       transformState.matrix.tx += e.pageX - lastMoveX
       transformState.matrix.ty += e.pageY - lastMoveY
       lastMoveX = e.pageX
       lastMoveY = e.pageY
-
-      setTimeout(() => {
-        moveCd = false
-      }, 50)
     }
 
     function handleMouseup(): void {
       isMove = false
+      imgElement.classList.remove('handle-image-zoom-move-active')
       document.removeEventListener('mousemove', handleMousemove)
       document.removeEventListener('mouseup', handleMouseup)
     }
 
-    // 关闭
+    /**
+     * 关闭组件
+     */
     wrapperElement.addEventListener('click', handleClickWrapper)
     document.addEventListener('keydown', handleKeydown)
 
@@ -184,13 +247,14 @@ export default function handleImageZoom(rootEvent: MouseEvent): void {
     }
 
     function beforeDestroy(): void {
-      wrapperElement.classList.add('leave-to')
+      wrapperElement.classList.add('handle-image-zoom-mask-leave')
       wrapperElement.addEventListener('transitionend', destroy, { once: true })
     }
 
     function destroy(): void {
       document.body.removeChild(wrapperElement)
       document.removeEventListener('keydown', handleKeydown)
+      isShowing = false
     }
   }
 }

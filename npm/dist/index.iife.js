@@ -1,6 +1,31 @@
 var handleImageZoom = (function () {
     'use strict';
 
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation.
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
+    ***************************************************************************** */
+
+    function __awaiter(thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    }
+
     /**
      * Make a map and return a function for checking if a key
      * is in that map.
@@ -789,8 +814,59 @@ var handleImageZoom = (function () {
         def(value, "__v_skip" /* SKIP */, true);
         return value;
     }
+
+    function trackRefValue(ref) {
+        if (isTracking()) {
+            ref = toRaw(ref);
+            if (!ref.dep) {
+                ref.dep = createDep();
+            }
+            {
+                trackEffects(ref.dep);
+            }
+        }
+    }
+    function triggerRefValue(ref, newVal) {
+        ref = toRaw(ref);
+        if (ref.dep) {
+            {
+                triggerEffects(ref.dep);
+            }
+        }
+    }
+    const convert = (val) => isObject(val) ? reactive(val) : val;
     function isRef(r) {
         return Boolean(r && r.__v_isRef === true);
+    }
+    function ref(value) {
+        return createRef(value, false);
+    }
+    class RefImpl {
+        constructor(value, _shallow) {
+            this._shallow = _shallow;
+            this.dep = undefined;
+            this.__v_isRef = true;
+            this._rawValue = _shallow ? value : toRaw(value);
+            this._value = _shallow ? value : convert(value);
+        }
+        get value() {
+            trackRefValue(this);
+            return this._value;
+        }
+        set value(newVal) {
+            newVal = this._shallow ? newVal : toRaw(newVal);
+            if (hasChanged(newVal, this._rawValue)) {
+                this._rawValue = newVal;
+                this._value = this._shallow ? newVal : convert(newVal);
+                triggerRefValue(this);
+            }
+        }
+    }
+    function createRef(rawValue, shallow) {
+        if (isRef(rawValue)) {
+            return rawValue;
+        }
+        return new RefImpl(rawValue, shallow);
     }
     function unref(ref) {
         return isRef(ref) ? ref.value : ref;
@@ -1592,60 +1668,67 @@ var handleImageZoom = (function () {
             return max;
         return value;
     }
-    let timestamp = 0;
-    function handleImageZoom(rootEvent) {
-        const originImg = rootEvent.target;
-        const imageSrc = originImg.getAttribute('src');
-        if (!imageSrc)
-            return console.error('unexpected error');
-        const now = Date.now();
-        if ((now - timestamp) > 200)
-            timestamp = now;
-        else
+    let isShowing = false;
+    function handleImageZoom(param) {
+        if (isShowing)
             return;
-        const wrapperElement = document.createElement('div');
-        wrapperElement.classList.add('awesome-zoom-image-wrapper');
-        wrapperElement.classList.add('enter-from');
-        setTimeout(() => {
-            wrapperElement.classList.remove('enter-from');
-            wrapperElement.addEventListener('transitionend', onShow, { once: true });
-        });
-        const imgElement = document.createElement('img');
-        imgElement.setAttribute('src', imageSrc);
-        imgElement.setAttribute('draggable', 'false');
-        const { width: originImgWidth, height: originImgHeight } = originImg.getBoundingClientRect();
-        const wPercent = originImgWidth / window.innerWidth;
-        const hPercent = originImgHeight / window.innerHeight;
-        if (wPercent > hPercent) {
-            imgElement.setAttribute('width', '80%');
+        isShowing = true;
+        let imageSrc;
+        if (typeof param === 'string') {
+            imageSrc = param;
         }
         else {
-            imgElement.setAttribute('height', '80%');
+            imageSrc = param.target.getAttribute('src');
         }
-        imgElement.classList.add('awesome-zoom-image');
+        if (!imageSrc) {
+            isShowing = false;
+            return console.error('Unexpected error');
+        }
+        const wrapperElement = document.createElement('div');
+        wrapperElement.classList.add('handle-image-zoom-wrapper');
+        const imgElement = document.createElement('img');
+        imgElement.classList.add('handle-image-zoom-target');
+        imgElement.setAttribute('src', imageSrc);
+        imgElement.setAttribute('draggable', 'false');
+        imgElement.addEventListener('load', onLoaded);
         wrapperElement.appendChild(imgElement);
         document.body.appendChild(wrapperElement);
-        function onShow() {
-            imgElement.addEventListener('click', handleClick);
-            imgElement.addEventListener('wheel', handleWheel);
-            imgElement.addEventListener('mousedown', handleMousedown);
+        setTimeout(() => {
+            wrapperElement.classList.add('handle-image-zoom-mask-enter');
+        });
+        let isLoaded = ref(false);
+        setTimeout(() => {
+            if (isLoaded.value)
+                return;
+            const loadingElement = document.createElement('div');
+            loadingElement.classList.add('handle-image-zoom-loading-wrapper');
+            loadingElement.innerHTML = `<svg class="handle-image-zoom-loading" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="29" fill="none" stroke="#FFF6" stroke-width="6" stroke-linecap="round"></circle>
+    </svg>`;
+            wrapperElement.appendChild(loadingElement);
+            const watcherStop = watch(isLoaded, () => {
+                wrapperElement.removeChild(loadingElement);
+                watcherStop();
+            });
+        }, 100);
+        function onLoaded() {
+            isLoaded.value = true;
             const { width: imgWidth, height: imgHeight } = imgElement.getBoundingClientRect();
             const transformState = reactive({
-                matrix: { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 },
                 origin: `${imgWidth / 2}px ${imgHeight / 2}px`,
+                matrix: { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 },
             });
+            const resetStyle = () => {
+                transformState.origin = `${imgWidth / 2}px ${imgHeight / 2}px`;
+                transformState.matrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+            };
             watch(transformState, () => {
                 imgElement.style.transform = `matrix(${Object.values(transformState.matrix).join(',')})`;
                 imgElement.style.transformOrigin = transformState.origin;
             }, { immediate: false });
-            function resetStyle() {
-                scale = 1;
-                accumulateDeltaY = 0;
-                wheelingDeltaY = 0;
-                imgElement.classList.remove('transition-active');
-                transformState.matrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
-                transformState.origin = `${imgWidth / 2}px ${imgHeight / 2}px`;
-            }
+            imgElement.addEventListener('click', handleClick);
+            imgElement.addEventListener('wheel', handleWheel, { passive: false });
+            imgElement.addEventListener('mousedown', handleMousedown);
             let isDoubleClick = false;
             function handleClick(e) {
                 e.stopPropagation();
@@ -1660,67 +1743,109 @@ var handleImageZoom = (function () {
                     }, 300);
                 }
             }
-            const wheelBaseRate = Math.ceil(window.innerHeight / 6);
-            const maxScale = 5, minScale = 1;
-            const maxDeltaY = wheelBaseRate * maxScale, minDeltaY = 0;
-            let isWheel = false, wheelTimer = 0, scale = 1, accumulateDeltaY = 0, wheelingDeltaY = 0;
+            let isWheel = false, wheelCd = false, lastWheelEvent = null, wheelTimer = 0;
             function handleWheel(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (isMove)
-                    return;
-                updateStyleByWheel(e);
-                wheelTimer && clearTimeout(wheelTimer);
-                wheelTimer = window.setTimeout(() => {
-                    isWheel = false;
-                }, 100);
+                return __awaiter(this, void 0, void 0, function* () {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isMove)
+                        return;
+                    if (wheelCd) {
+                        lastWheelEvent = e;
+                        return;
+                    }
+                    wheelCd = true;
+                    setTimeout(() => {
+                        wheelCd = false;
+                        if (lastWheelEvent) {
+                            const t = lastWheelEvent;
+                            lastWheelEvent = null;
+                            handleWheel(t);
+                        }
+                    }, 20);
+                    const currentScale = transformState.matrix.a;
+                    if (!isWheel) {
+                        isWheel = true;
+                        const { offsetX: newX, offsetY: newY } = e;
+                        const [oldX, oldY] = transformState.origin.split(' ').map(item => Number(item.slice(0, -2)));
+                        if (newX !== oldX || newY !== oldY) {
+                            transformState.origin = `${newX}px ${newY}px`;
+                            transformState.matrix.tx += parseInt(((newX - oldX) * (currentScale - 1)).toFixed(0));
+                            transformState.matrix.ty += parseInt(((newY - oldY) * (currentScale - 1)).toFixed(0));
+                            yield new Promise(resolve => {
+                                setTimeout(() => {
+                                    resolve(null);
+                                    imgElement.classList.add('handle-image-zoom-scale-active');
+                                });
+                            });
+                        }
+                        else {
+                            imgElement.classList.add('handle-image-zoom-scale-active');
+                        }
+                    }
+                    let ratio;
+                    if (currentScale >= 5) {
+                        ratio = 0.4;
+                    }
+                    else if (currentScale >= 4) {
+                        ratio = 0.35;
+                    }
+                    else if (currentScale >= 3) {
+                        ratio = 0.3;
+                    }
+                    else if (currentScale >= 2) {
+                        ratio = 0.25;
+                    }
+                    else {
+                        ratio = 0.2;
+                    }
+                    const minScale = 1, maxScale = 6;
+                    const newScale = clamp(currentScale + (e.deltaY > 0 ? -1 : 1) * ratio, minScale, maxScale);
+                    const fixedNewScale = Number(newScale.toFixed(2));
+                    Object.assign(transformState.matrix, { a: fixedNewScale, d: fixedNewScale });
+                    wheelTimer && clearTimeout(wheelTimer);
+                    wheelTimer = window.setTimeout(() => {
+                        isWheel = false;
+                        imgElement.classList.remove('handle-image-zoom-scale-active');
+                    }, 200);
+                });
             }
-            function updateStyleByWheel(e) {
-                if (!isWheel)
-                    accumulateDeltaY = wheelingDeltaY;
-                wheelingDeltaY = clamp(-e.deltaY + accumulateDeltaY, minDeltaY, maxDeltaY);
-                scale = clamp(Number(((wheelingDeltaY / wheelBaseRate) + 1).toFixed(1)), minScale, maxScale);
-                Object.assign(transformState.matrix, { a: scale, d: scale });
-                if (!isWheel) {
-                    isWheel = true;
-                    imgElement.classList.remove('transition-active');
-                    const { offsetX: newX, offsetY: newY } = e;
-                    const [oldX, oldY] = transformState.origin.split(' ').map(item => Number(item.slice(0, -2)));
-                    transformState.matrix.tx += (newX - oldX) * (scale - 1);
-                    transformState.matrix.ty += (newY - oldY) * (scale - 1);
-                    transformState.origin = `${newX}px ${newY}px`;
-                }
-                else {
-                    imgElement.classList.add('transition-active');
-                }
-            }
-            let isMove = false;
-            let moveCd = false;
+            let isMove = false, moveCd = false, lastMoveEvent = null;
             let lastMoveX, lastMoveY;
             function handleMousedown(e) {
                 if (isWheel)
                     return;
+                if (e.button !== 0)
+                    return;
                 isMove = true;
                 lastMoveX = e.pageX;
                 lastMoveY = e.pageY;
-                imgElement.classList.add('transition-active');
-                document.addEventListener('mousemove', handleMousemove, { passive: false });
+                imgElement.classList.add('handle-image-zoom-move-active');
+                document.addEventListener('mousemove', handleMousemove, { passive: true });
                 document.addEventListener('mouseup', handleMouseup);
             }
             function handleMousemove(e) {
-                if (moveCd)
+                if (moveCd) {
+                    lastMoveEvent = e;
                     return;
+                }
                 moveCd = true;
+                setTimeout(() => {
+                    moveCd = false;
+                    if (isMove && lastMoveEvent) {
+                        const t = lastMoveEvent;
+                        lastMoveEvent = null;
+                        handleMousemove(t);
+                    }
+                }, 20);
                 transformState.matrix.tx += e.pageX - lastMoveX;
                 transformState.matrix.ty += e.pageY - lastMoveY;
                 lastMoveX = e.pageX;
                 lastMoveY = e.pageY;
-                setTimeout(() => {
-                    moveCd = false;
-                }, 50);
             }
             function handleMouseup() {
                 isMove = false;
+                imgElement.classList.remove('handle-image-zoom-move-active');
                 document.removeEventListener('mousemove', handleMousemove);
                 document.removeEventListener('mouseup', handleMouseup);
             }
@@ -1738,12 +1863,13 @@ var handleImageZoom = (function () {
                 }
             }
             function beforeDestroy() {
-                wrapperElement.classList.add('leave-to');
+                wrapperElement.classList.add('handle-image-zoom-mask-leave');
                 wrapperElement.addEventListener('transitionend', destroy, { once: true });
             }
             function destroy() {
                 document.body.removeChild(wrapperElement);
                 document.removeEventListener('keydown', handleKeydown);
+                isShowing = false;
             }
         }
     }
