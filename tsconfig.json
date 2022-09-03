@@ -1,17 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
+    "target": "es2020",
     "module": "esnext",
     "moduleResolution": "node",
-    "lib": ["esnext", "dom"],
-    "strict": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "rootDir": "src",
-    "outDir": "npm/dist",
-    "declaration": true,
-    "removeComments": true
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "allowUnreachableCode": false,
+    "lib": ["esnext", "dom"],
+    "jsx": "preserve",
+    "rootDir": ".",
+    "paths": { }
   },
-  "files": ["src/index.ts"]
+  "include": ["src/**/*.ts"]
 }

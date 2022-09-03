@@ -42,7 +42,7 @@ export default function handleImageZoom(param: string | MouseEvent): void {
   })
 
   // 如果 100ms 内图片未加载完成 生成加载元素
-  let isLoaded = ref(false)
+  const isLoaded = ref(false)
   setTimeout(() => {
     if (isLoaded.value) return
     // 尚未加载完成

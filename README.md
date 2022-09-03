@@ -34,13 +34,6 @@ As you see, it's a function to zoom `<img>` element. And there are two ways to u
 ## Install
 
 ```
-# with npm
-npm install handle-image-zoom
-
-# with yarn
-yarn add handle-image-zoom
-
-# with pnpm
 pnpm add handle-image-zoom
 ```
 
