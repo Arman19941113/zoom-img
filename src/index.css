@@ -1,4 +1,4 @@
-.handle-image-zoom-wrapper {
+.zoom-img-wrapper {
   position: fixed;
   left: 0;
   top: 0;
@@ -11,29 +11,29 @@
   background-color: rgba(0, 0, 0, .5);
   opacity: 0;
   transition: opacity .2s;
-  &.handle-image-zoom-mask-enter {
+  &.zoom-img-mask-enter {
     opacity: 1;
   }
-  &.handle-image-zoom-mask-leave {
+  &.zoom-img-mask-leave {
     opacity: 0;
   }
-  .handle-image-zoom-target {
+  .zoom-img-target {
     max-width: 80%;
     max-height: 80%;
     cursor: move;
-    &.handle-image-zoom-scale-active {
+    &.zoom-img-scale-active {
       transition: transform .04s linear;
     }
-    &.handle-image-zoom-move-active {
+    &.zoom-img-move-active {
       transition: transform .03s linear;
     }
   }
-  .handle-image-zoom-loading-wrapper {
+  .zoom-img-loading-wrapper {
     position: absolute;
     top: calc(50% - 32px);
     left: calc(50% - 32px);
   }
-  .handle-image-zoom-loading {
+  .zoom-img-loading {
     width: 64px;
     height: 64px;
     animation: rotate-animation 2s linear infinite;
@@ -43,8 +43,8 @@
       }
     }
     circle {
-      animation: handle-image-zoom-loading-animation 2s ease-in-out infinite;
-      @keyframes handle-image-zoom-loading-animation {
+      animation: zoom-img-loading-animation 2s ease-in-out infinite;
+      @keyframes zoom-img-loading-animation {
         0% {
           stroke-dasharray: 1, 200;
           stroke-dashoffset: 0;

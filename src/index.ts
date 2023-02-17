@@ -8,7 +8,7 @@ function clamp(value: number, min: number, max: number): number {
 
 let isShowing = false
 
-export default function handleImageZoom(param: string | MouseEvent): void {
+export default function zoomImg(param: string | MouseEvent): void {
   if (isShowing) return
   isShowing = true
 
@@ -25,11 +25,11 @@ export default function handleImageZoom(param: string | MouseEvent): void {
 
   // 生成容器元素
   const wrapperElement = document.createElement('div')
-  wrapperElement.classList.add('handle-image-zoom-wrapper')
+  wrapperElement.classList.add('zoom-img-wrapper')
 
   // 生成图片元素
   const imgElement = document.createElement('img')
-  imgElement.classList.add('handle-image-zoom-target')
+  imgElement.classList.add('zoom-img-target')
   imgElement.setAttribute('src', imageSrc)
   imgElement.setAttribute('draggable', 'false')
   imgElement.addEventListener('load', onLoaded)
@@ -38,7 +38,7 @@ export default function handleImageZoom(param: string | MouseEvent): void {
   // 挂载元素
   document.body.appendChild(wrapperElement)
   setTimeout(() => {
-    wrapperElement.classList.add('handle-image-zoom-mask-enter')
+    wrapperElement.classList.add('zoom-img-mask-enter')
   })
 
   // 如果 100ms 内图片未加载完成 生成加载元素
@@ -47,8 +47,8 @@ export default function handleImageZoom(param: string | MouseEvent): void {
     if (isLoaded.value) return
     // 尚未加载完成
     const loadingElement = document.createElement('div')
-    loadingElement.classList.add('handle-image-zoom-loading-wrapper')
-    loadingElement.innerHTML = `<svg class="handle-image-zoom-loading" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    loadingElement.classList.add('zoom-img-loading-wrapper')
+    loadingElement.innerHTML = `<svg class="zoom-img-loading" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="29" fill="none" stroke="#FFF6" stroke-width="6" stroke-linecap="round"></circle>
     </svg>`
     wrapperElement.appendChild(loadingElement)
@@ -147,11 +147,11 @@ export default function handleImageZoom(param: string | MouseEvent): void {
           await new Promise(resolve => {
             setTimeout(() => {
               resolve(null)
-              imgElement.classList.add('handle-image-zoom-scale-active')
+              imgElement.classList.add('zoom-img-scale-active')
             })
           })
         } else {
-          imgElement.classList.add('handle-image-zoom-scale-active')
+          imgElement.classList.add('zoom-img-scale-active')
         }
       }
 
@@ -177,7 +177,7 @@ export default function handleImageZoom(param: string | MouseEvent): void {
       wheelTimer && clearTimeout(wheelTimer)
       wheelTimer = window.setTimeout(() => {
         isWheel = false
-        imgElement.classList.remove('handle-image-zoom-scale-active')
+        imgElement.classList.remove('zoom-img-scale-active')
       }, 200)
     }
 
@@ -194,7 +194,7 @@ export default function handleImageZoom(param: string | MouseEvent): void {
       isMove = true
       lastMoveX = e.pageX
       lastMoveY = e.pageY
-      imgElement.classList.add('handle-image-zoom-move-active')
+      imgElement.classList.add('zoom-img-move-active')
       document.addEventListener('mousemove', handleMousemove, { passive: true })
       document.addEventListener('mouseup', handleMouseup)
     }
@@ -223,7 +223,7 @@ export default function handleImageZoom(param: string | MouseEvent): void {
 
     function handleMouseup(): void {
       isMove = false
-      imgElement.classList.remove('handle-image-zoom-move-active')
+      imgElement.classList.remove('zoom-img-move-active')
       document.removeEventListener('mousemove', handleMousemove)
       document.removeEventListener('mouseup', handleMouseup)
     }
@@ -247,7 +247,7 @@ export default function handleImageZoom(param: string | MouseEvent): void {
     }
 
     function beforeDestroy(): void {
-      wrapperElement.classList.add('handle-image-zoom-mask-leave')
+      wrapperElement.classList.add('zoom-img-mask-leave')
       wrapperElement.addEventListener('transitionend', destroy, { once: true })
     }
 

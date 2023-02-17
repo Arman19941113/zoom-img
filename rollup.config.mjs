@@ -33,7 +33,7 @@ export default [
   {
     input: 'src/index.ts',
     output: {
-      name: 'handleImageZoom',
+      name: 'zoomImg',
       file: 'dist/index.iife.js',
       format: 'iife',
     },

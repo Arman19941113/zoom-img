@@ -1,17 +1,14 @@
 {
-  "name": "handle-image-zoom",
-  "version": "1.0.0",
-  "description": "Zoom image in web",
-  "keywords": [
-    "js",
-    "handleImageZoom"
-  ],
-  "homepage": "https://github.com/Arman19941113/handle-image-zoom#readme",
+  "name": "@armantang/zoom-img",
+  "version": "0.0.0",
+  "description": "Zoom in/out image in web",
+  "keywords": ["js", "zoom in/out image"],
+  "homepage": "https://github.com/Arman19941113/zoom-img#readme",
   "license": "MIT",
   "author": "Arman Tang",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Arman19941113/handle-image-zoom"
+    "url": "https://github.com/Arman19941113/zoom-img"
   },
   "files": [
     "dist"

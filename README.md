@@ -1,9 +1,9 @@
-# handle-image-zoom
+# zoom-img
 
 As you see, it's a function to zoom `<img>` element. And there are two ways to use this function:
 
-1. `image.addEventListener('click', handleImageZoom)`
-2. `handleImageZoom(imgSrc)`
+1. `image.addEventListener('click', zoomImg)`
+2. `zoomImg(imgSrc)`
 
 ## Basic Function
 
@@ -22,33 +22,33 @@ As you see, it's a function to zoom `<img>` element. And there are two ways to u
 ```html
 <body>
   <img id="image" class="image" alt="" src="./girl.jpg" width="400" />
-  <link rel="stylesheet" href="https://unpkg.com/handle-image-zoom/dist/index.css">
-  <script src="https://unpkg.com/handle-image-zoom/dist/index.iife.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/@armantang/zoom-img/dist/index.css">
+  <script src="https://unpkg.com/@armantang/zoom-img/dist/index.iife.js"></script>
   <script>
     const image = document.getElementById('image')
-    image.addEventListener('click', handleImageZoom)
+    image.addEventListener('click', zoomImg)
   </script>
 </body>
 ```
 
 ## Install
 
-```
-pnpm add handle-image-zoom
+```bash
+pnpm add @armantang/zoom-img
 ```
 
 ## Quick Start
 
 ```javascript
-import 'handle-image-zoom/dist/index.css'
-import handleImageZoom from 'handle-image-zoom'
+import '@armantang/zoom-img/dist/index.css'
+import zoomImg from '@armantang/zoom-img'
 
 const image = document.getElementById('image')
-image.addEventListener('click', handleImageZoom)
+image.addEventListener('click', zoomImg)
 
 const imgSrc = 'https://xxx'
 const button = document.getElementById('button')
 button.addEventListener('click', () => {
-  handleImageZoom(imgSrc)
+  zoomImg(imgSrc)
 })
 ```
