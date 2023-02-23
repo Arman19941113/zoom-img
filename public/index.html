@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>zoom-img</title>
+  <link href="./index.css" rel="stylesheet">
+</head>
+<body>
+  <h1>Example1: amplify self img</h1>
+  <img alt="" class="image" id="image1" src="./girl.2x.jpg" width="400" />
+
+  <h1>Example2: amplify high definition img</h1>
+  <img alt="" class="image" id="image2" src="./girl.1x.jpg" width="400" />
+
+  <script src="./index.iife.js"></script>
+  <script>
+    const image1 = document.getElementById('image1')
+    image1.addEventListener('click', zoomImg)
+
+    const image2 = document.getElementById('image2')
+    image2.addEventListener('click', () => {
+      zoomImg('./girl.4x.jpg')
+    })
+  </script>
+</body>
+</html>
