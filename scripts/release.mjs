@@ -19,6 +19,7 @@ if (execSync('git diff --staged').length) {
 
 const RELEASE_LEVELS = ['prerelease', 'patch', 'prepatch', 'minor', 'preminor', 'major', 'premajor']
 const NPM_DIST_TAGS = ['latest', 'beta', 'next']
+const NPM_ACCESS_LEVELS = ['public', 'restricted']
 
 const publishPkgPath = path.resolve('package.npm.json')
 const projectPkgPath = path.resolve('package.json')
@@ -54,6 +55,13 @@ if (!semver.valid(targetVersion, undefined)) {
   errorLog(`Invalid target version: ${targetVersion}`)
   process.exit()
 }
+
+const { access } = await prompt({
+  type: 'select',
+  name: 'access',
+  message: 'Select access level',
+  choices: NPM_ACCESS_LEVELS,
+})
 
 const { tag } = await prompt({
   type: 'select',
@@ -93,15 +101,9 @@ parsedPkgJson.version = targetVersion
 fs.writeFileSync(publishPkgPath, JSON.stringify(parsedPkgJson, null, 2) + '\n')
 fs.renameSync(projectPkgPath, temporaryPath)
 fs.renameSync(publishPkgPath, projectPkgPath)
-try {
-  run(`npm publish . --tag ${tag}`)
-} catch (e) {
-  errorLog(e.message)
-  process.exit()
-} finally {
-  fs.renameSync(projectPkgPath, publishPkgPath)
-  fs.renameSync(temporaryPath, projectPkgPath)
-}
+run(`npm publish . --access ${access} --tag ${tag}`)
+fs.renameSync(projectPkgPath, publishPkgPath)
+fs.renameSync(temporaryPath, projectPkgPath)
 
 // Commit changes to the Git.
 stepLog('\nCommitting changes...')
