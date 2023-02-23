@@ -1,8 +1,11 @@
 {
   "name": "@armantang/zoom-img",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Zoom in/out image in web",
-  "keywords": ["js", "zoom in/out image"],
+  "keywords": [
+    "js",
+    "zoom in/out image"
+  ],
   "homepage": "https://github.com/Arman19941113/zoom-img#readme",
   "license": "MIT",
   "author": "Arman Tang",
