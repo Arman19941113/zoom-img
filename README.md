@@ -1,4 +1,4 @@
-# zoom-img
+# Zoom Img
 
 As you see, it's a function to zoom `<img>` element. And there are two ways to use this function:
 
