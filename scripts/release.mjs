@@ -111,10 +111,10 @@ run('git add package.npm.json')
 run(`git commit -m "release: v${targetVersion}"`)
 
 // Push to GitHub.
-// stepLog('\nPushing to GitHub...')
-// run(`git tag v${targetVersion}`)
-// run(`git push origin refs/tags/v${targetVersion}`)
-// run('git push')
+stepLog('\nPushing to GitHub...')
+run(`git tag v${targetVersion}`)
+run(`git push origin refs/tags/v${targetVersion}`)
+// run('git push origin master')
 
 successLog(`\nReleased successfully at v${targetVersion}`)
 process.exit()
