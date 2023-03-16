@@ -1,4 +1,6 @@
+import replace from '@rollup/plugin-replace'
 import typescript from '@rollup/plugin-typescript'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 import terser from '@rollup/plugin-terser'
 
 import rollupPostcss from 'rollup-plugin-postcss'
@@ -6,21 +8,30 @@ import postcssPresetEnv from 'postcss-preset-env'
 import postcssNested from 'postcss-nested'
 import cssnano from 'cssnano'
 
+const plugins = [
+  replace({
+    preventAssignment: true,
+    values: {
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    },
+  }),
+  typescript({
+    compilerOptions: {
+      removeComments: true,
+    },
+  }),
+  nodeResolve(),
+]
+
 const browserTask = {
   input: 'src/index.ts',
   output: {
     name: 'zoomImg',
     file: 'dist/index.global.js',
     format: 'iife',
+    plugins: [terser()],
   },
-  plugins: [
-    typescript({
-      compilerOptions: {
-        removeComments: true,
-      },
-    }),
-    terser(),
-  ],
+  plugins,
 }
 
 const jsTasks = {
@@ -36,13 +47,7 @@ const jsTasks = {
       format: 'es',
     },
   ],
-  plugins: [
-    typescript({
-      compilerOptions: {
-        removeComments: true,
-      },
-    }),
-  ],
+  plugins,
 }
 
 const cssTask = {
