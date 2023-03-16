@@ -2,6 +2,7 @@
   "name": "@armantang/zoom-img",
   "private": true,
   "scripts": {
+    "postinstall": "husky install",
     "lint": "eslint --ext ts src",
     "build": "node scripts/build.mjs",
     "release": "node scripts/release.mjs"
@@ -10,30 +11,29 @@
     "*.ts": "eslint"
   },
   "dependencies": {
-    "@vue/runtime-core": "3.0.0"
+    "@rollup/plugin-terser": "^0.4.0",
+    "@vue/runtime-core": "^3.2.47"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-replace": "^4.0.0",
-    "@rollup/plugin-typescript": "^8.3.2",
-    "@types/node": "^18.7.14",
-    "@typescript-eslint/eslint-plugin": "^5.22.0",
-    "@typescript-eslint/parser": "^5.22.0",
-    "chalk": "^5.0.1",
-    "cssnano": "^5.1.13",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.15.3",
+    "@typescript-eslint/eslint-plugin": "^5.55.0",
+    "@typescript-eslint/parser": "^5.55.0",
+    "chalk": "^5.2.0",
+    "cssnano": "^5.1.15",
     "enquirer": "^2.3.6",
-    "eslint": "^8.15.0",
-    "fs-extra": "^10.1.0",
-    "husky": "^7.0.4",
-    "lint-staged": "^13.0.3",
-    "postcss": "^8.4.16",
-    "postcss-nested": "^5.0.6",
-    "rollup": "^2.72.1",
+    "eslint": "^8.36.0",
+    "fs-extra": "^11.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
+    "postcss": "^8.4.21",
+    "postcss-nested": "^6.0.1",
+    "postcss-preset-env": "^8.0.1",
+    "rollup": "^3.19.1",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-terser": "^7.0.2",
-    "semver": "^7.3.7",
-    "tslib": "^2.4.0",
-    "typescript": "^4.6.4"
+    "semver": "^7.3.8",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5"
   },
   "engines": {
     "node": ">=16"

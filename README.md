@@ -57,7 +57,7 @@ button.addEventListener('click', () => {
   <h1>Example2: amplify high definition img</h1>
   <img alt="" class="image" id="image2" src="https://arman19941113.github.io/zoom-img/girl.1x.jpg" width="400" />
 
-  <script src="https://arman19941113.github.io/zoom-img/index.iife.js"></script>
+  <script src="https://arman19941113.github.io/zoom-img/index.global.js"></script>
   <script>
     const image1 = document.getElementById('image1')
     image1.addEventListener('click', zoomImg)
