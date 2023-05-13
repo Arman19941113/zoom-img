@@ -1,21 +1,21 @@
 # Zoom Img
 
-As you see, it's a function to zoom `<img>` element. And there are two ways to use this function:
+As you can see, this library provides a function for zooming <img> elements. There are two ways to utilize this function:
 
 1. `image.addEventListener('click', zoomImg)`
 2. `zoomImg(imgSrc)`
 
 ## Basic Function
 
-1. press the image to move it;
-2. wheel mouse to zoom it(or zoom in Magic Trackpad);
-3. press `enter` or double click image to reset the image style;
-4. press `esc` or click mask to quit.
+1. Click on the image and move the mouse to change its position
+2. Use the scroll wheel on the mouse to zoom in or out (or pinch to zoom on a Magic Trackpad)
+3. Press 'Enter' or double-click on the image to reset its style
+4. Press 'Esc' or click on the mask to exit
 
 ## Advantages
 
-1. Scale picture based on the mouse position.
-2. Use css transform to move and scale picture. So it has better performance in theory.
+1. Scale the picture based on the position of the mouse
+2. Use CSS transform to move and scale the picture, as it should have better performance in theory
 
 ## Install
 
